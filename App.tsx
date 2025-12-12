@@ -28,6 +28,80 @@ function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
 }
 
+// --- DEMO DATA ---
+const DEMO_PROJECT = {
+  messages: [
+    {
+      id: 'demo-1',
+      role: Role.MODEL,
+      text: "Bienvenido a **ARCH**. Soy su Arquitecto de Investigación.",
+      timestamp: new Date(Date.now() - 100000)
+    },
+    {
+      id: 'demo-2',
+      role: Role.USER,
+      text: "Quiero investigar el impacto de la luz azul de pantallas en el tiempo que tardan los adolescentes en dormirse.",
+      timestamp: new Date(Date.now() - 90000)
+    },
+    {
+      id: 'demo-3',
+      role: Role.MODEL,
+      text: "Excelente punto de partida. Estamos en la **Fase 1: Estructuración**. \n\nPara avanzar, necesitamos operacionalizar las variables. **¿Cómo medirá específicamente la 'exposición a luz azul' y el 'tiempo para dormirse'?**",
+      timestamp: new Date(Date.now() - 80000)
+    },
+    {
+      id: 'demo-4',
+      role: Role.USER,
+      text: "La exposición serán los minutos de uso de smartphone en la última hora antes de dormir. El tiempo será la 'Latencia de Sueño' medida en minutos con una pulsera inteligente.",
+      timestamp: new Date(Date.now() - 70000)
+    },
+    {
+      id: 'demo-5',
+      role: Role.MODEL,
+      text: "Perfecto. \n\n**Variables Definidas:**\n- **Variable Independiente ($X$):** Minutos de pantalla (0-60 min).\n- **Variable Dependiente ($Y$):** Latencia de Sueño (min).\n\n**Hipótesis de Trabajo ($H_1$):** Existe una correlación positiva; a mayor tiempo de pantalla ($X$), mayor latencia de sueño ($Y$).\n\n¿Desea proceder al modelado matemático de esta relación?",
+      timestamp: new Date(Date.now() - 60000)
+    },
+    {
+      id: 'demo-6',
+      role: Role.USER,
+      text: "/modelar",
+      timestamp: new Date(Date.now() - 50000)
+    },
+    {
+      id: 'demo-7',
+      role: Role.MODEL,
+      text: "Iniciando **Fase 2: Modelado de Variables**. He generado una configuración de simulación basada en la supresión de melatonina. Puede abrir el **Simulador** para ver el modelo proyectado o el **Mapa** para ver la estructura.",
+      timestamp: new Date(Date.now() - 40000)
+    }
+  ] as Message[],
+  simulationConfig: {
+    independentVariables: [
+      {
+        name: "screen_time",
+        label: "Tiempo Pantalla (min)",
+        min: 0,
+        max: 60,
+        defaultValue: 30,
+        description: "Uso de smartphone en la hora previa a dormir"
+      }
+    ],
+    dependentVariableLabel: "Latencia Sueño (min)",
+    h0_formula: "15 + (Math.random() * 5)", // Baseline ~15-20 min latency regardless of screen time
+    h1_formula: "15 + (0.5 * screen_time) + (Math.random() * 2)", // Base 15 + 0.5min per min of screen
+    explanation: "El modelo base ($H_0$) asume una latencia normal de 15-20 min. El modelo de trabajo ($H_1$) proyecta un incremento de 0.5 minutos de latencia por cada minuto de exposición a luz azul."
+  } as SimulationConfig,
+  diagramData: {
+    nodes: [
+      { id: "1", label: "Pregunta", status: "completed", details: "¿Luz azul afecta latencia?", connections: ["2"] },
+      { id: "2", label: "Variables", status: "completed", details: "IV: Minutos Pantalla | DV: Latencia (min)", connections: ["3", "4"] },
+      { id: "3", label: "Hipótesis H1", status: "active", details: "Correlación Positiva (+)", connections: ["5"] },
+      { id: "4", label: "Instrumentos", status: "active", details: "App Registro + Smartband", connections: ["5"] },
+      { id: "5", label: "Análisis", status: "pending", details: "Regresión Lineal", connections: [] }
+    ]
+  } as DiagramData,
+  simValues: { "screen_time": 30 }
+};
+
 // --- TRANSLATION STRINGS ---
 const I18N = {
   es: {
@@ -40,6 +114,8 @@ const I18N = {
     modeManualDesc: "Inicie una sesión en blanco y converse libremente con el arquitecto.",
     modeLoad: "Cargar Sesión",
     modeLoadDesc: "Restaure un proyecto previo desde un archivo JSON.",
+    modeDemo: "Ejemplo Completo",
+    modeDemoDesc: "Carga un proyecto de 'Luz Azul vs Sueño' con variables y mapa ya configurados.",
     wizardTitle: "Configuración Inicial",
     fieldLabel: "¿Cuál es tu campo de estudio general?",
     fieldPlaceholder: "Ej. Biología Marina, Sociología Urbana...",
@@ -79,6 +155,8 @@ const I18N = {
     modeManualDesc: "Start a blank session and converse freely with the architect.",
     modeLoad: "Load Session",
     modeLoadDesc: "Restore a previous project from a JSON file.",
+    modeDemo: "Full Example",
+    modeDemoDesc: "Load a 'Blue Light vs Sleep' project with variables and map pre-configured.",
     wizardTitle: "Initial Setup",
     fieldLabel: "What is your general field of study?",
     fieldPlaceholder: "e.g. Marine Biology, Urban Sociology...",
@@ -134,14 +212,14 @@ const MessageBubble = React.memo(({ msg }: { msg: Message }) => {
 });
 
 // --- START MENU COMPONENT ---
-const StartMenu = ({ onSelect, lang }: { onSelect: (mode: 'wizard' | 'scratch' | 'load') => void, lang: 'es' | 'en' }) => {
+const StartMenu = ({ onSelect, lang }: { onSelect: (mode: 'wizard' | 'scratch' | 'load' | 'demo') => void, lang: 'es' | 'en' }) => {
   const t = I18N[lang];
   return (
     <div className="fixed inset-0 bg-slate-950 z-40 flex items-center justify-center p-4">
       <motion.div 
         initial={{ opacity: 0, y: 20 }} 
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-4xl w-full"
+        className="max-w-6xl w-full"
       >
         <div className="text-center mb-12">
            <div className="flex items-center justify-center tracking-tight mb-4">
@@ -152,46 +230,60 @@ const StartMenu = ({ onSelect, lang }: { onSelect: (mode: 'wizard' | 'scratch' |
            <p className="text-slate-400 text-lg">{t.menuTitle}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
            {/* Option 1: Wizard */}
            <button 
              onClick={() => onSelect('wizard')}
-             className="group bg-slate-900 border border-slate-800 p-8 rounded-2xl hover:border-teal-500/50 hover:bg-slate-800/50 transition-all text-left flex flex-col gap-4"
+             className="group bg-slate-900 border border-slate-800 p-6 rounded-2xl hover:border-teal-500/50 hover:bg-slate-800/50 transition-all text-left flex flex-col gap-4"
            >
-             <div className="w-12 h-12 bg-teal-900/30 rounded-lg flex items-center justify-center text-teal-400 group-hover:scale-110 transition-transform">
+             <div className="w-10 h-10 bg-teal-900/30 rounded-lg flex items-center justify-center text-teal-400 group-hover:scale-110 transition-transform">
                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
              </div>
              <div>
-               <h3 className="text-xl font-bold text-slate-100 mb-2">{t.modeWizard}</h3>
-               <p className="text-sm text-slate-400">{t.modeWizardDesc}</p>
+               <h3 className="text-lg font-bold text-slate-100 mb-2">{t.modeWizard}</h3>
+               <p className="text-xs text-slate-400 leading-relaxed">{t.modeWizardDesc}</p>
              </div>
            </button>
 
            {/* Option 2: Scratch */}
            <button 
              onClick={() => onSelect('scratch')}
-             className="group bg-slate-900 border border-slate-800 p-8 rounded-2xl hover:border-indigo-500/50 hover:bg-slate-800/50 transition-all text-left flex flex-col gap-4"
+             className="group bg-slate-900 border border-slate-800 p-6 rounded-2xl hover:border-indigo-500/50 hover:bg-slate-800/50 transition-all text-left flex flex-col gap-4"
            >
-             <div className="w-12 h-12 bg-indigo-900/30 rounded-lg flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+             <div className="w-10 h-10 bg-indigo-900/30 rounded-lg flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
              </div>
              <div>
-               <h3 className="text-xl font-bold text-slate-100 mb-2">{t.modeManual}</h3>
-               <p className="text-sm text-slate-400">{t.modeManualDesc}</p>
+               <h3 className="text-lg font-bold text-slate-100 mb-2">{t.modeManual}</h3>
+               <p className="text-xs text-slate-400 leading-relaxed">{t.modeManualDesc}</p>
              </div>
            </button>
 
            {/* Option 3: Load */}
            <button 
              onClick={() => onSelect('load')}
-             className="group bg-slate-900 border border-slate-800 p-8 rounded-2xl hover:border-rose-500/50 hover:bg-slate-800/50 transition-all text-left flex flex-col gap-4"
+             className="group bg-slate-900 border border-slate-800 p-6 rounded-2xl hover:border-rose-500/50 hover:bg-slate-800/50 transition-all text-left flex flex-col gap-4"
            >
-             <div className="w-12 h-12 bg-rose-900/30 rounded-lg flex items-center justify-center text-rose-400 group-hover:scale-110 transition-transform">
+             <div className="w-10 h-10 bg-rose-900/30 rounded-lg flex items-center justify-center text-rose-400 group-hover:scale-110 transition-transform">
                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
              </div>
              <div>
-               <h3 className="text-xl font-bold text-slate-100 mb-2">{t.modeLoad}</h3>
-               <p className="text-sm text-slate-400">{t.modeLoadDesc}</p>
+               <h3 className="text-lg font-bold text-slate-100 mb-2">{t.modeLoad}</h3>
+               <p className="text-xs text-slate-400 leading-relaxed">{t.modeLoadDesc}</p>
+             </div>
+           </button>
+
+            {/* Option 4: Demo */}
+           <button 
+             onClick={() => onSelect('demo')}
+             className="group bg-slate-900 border border-slate-800 p-6 rounded-2xl hover:border-amber-500/50 hover:bg-slate-800/50 transition-all text-left flex flex-col gap-4"
+           >
+             <div className="w-10 h-10 bg-amber-900/30 rounded-lg flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+             </div>
+             <div>
+               <h3 className="text-lg font-bold text-slate-100 mb-2">{t.modeDemo}</h3>
+               <p className="text-xs text-slate-400 leading-relaxed">{t.modeDemoDesc}</p>
              </div>
            </button>
         </div>
@@ -366,7 +458,7 @@ export default function App() {
   };
 
   // --- START MENU HANDLERS ---
-  const handleStartSelection = (mode: 'wizard' | 'scratch' | 'load') => {
+  const handleStartSelection = (mode: 'wizard' | 'scratch' | 'load' | 'demo') => {
     if (mode === 'wizard') {
       setViewState('wizard');
     } else if (mode === 'scratch') {
@@ -376,6 +468,19 @@ export default function App() {
     } else if (mode === 'load') {
       // Trigger file upload, viewState changes in file handler
       fileInputRef.current?.click();
+    } else if (mode === 'demo') {
+      // Load demo data
+      setMessages(DEMO_PROJECT.messages);
+      setSimulationConfig(DEMO_PROJECT.simulationConfig);
+      setDiagramData(DEMO_PROJECT.diagramData);
+      setSimValues(DEMO_PROJECT.simValues);
+      setViewState('chat');
+      // Init session with demo history for context continuity
+      const demoHistory: Content[] = DEMO_PROJECT.messages.map(m => ({
+          role: m.role,
+          parts: [{ text: m.text }]
+      }));
+      initSession(demoHistory);
     }
   };
 
