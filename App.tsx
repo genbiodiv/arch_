@@ -40,8 +40,6 @@ const I18N = {
     modeManualDesc: "Inicie una sesión en blanco y converse libremente con el arquitecto.",
     modeLoad: "Cargar Sesión",
     modeLoadDesc: "Restaure un proyecto previo desde un archivo JSON.",
-    modeDemo: "Ejemplo (Demo)",
-    modeDemoDesc: "Cargue un caso de estudio precargado para explorar las herramientas.",
     wizardTitle: "Configuración Inicial",
     fieldLabel: "¿Cuál es tu campo de estudio general?",
     fieldPlaceholder: "Ej. Biología Marina, Sociología Urbana...",
@@ -81,8 +79,6 @@ const I18N = {
     modeManualDesc: "Start a blank session and converse freely with the architect.",
     modeLoad: "Load Session",
     modeLoadDesc: "Restore a previous project from a JSON file.",
-    modeDemo: "Example (Demo)",
-    modeDemoDesc: "Load a pre-filled case study to explore the tools.",
     wizardTitle: "Initial Setup",
     fieldLabel: "What is your general field of study?",
     fieldPlaceholder: "e.g. Marine Biology, Urban Sociology...",
@@ -114,102 +110,6 @@ const I18N = {
   }
 };
 
-// --- DEMO DATA ---
-const DEMO_MESSAGES: Message[] = [
-  {
-    id: 'demo-1',
-    role: Role.MODEL,
-    text: "Bienvenido a **ARCH**. Soy su Arquitecto de Investigación. Para comenzar la **Fase 1**, por favor enuncie su idea preliminar. **¿Qué fenómeno desea estudiar?**",
-    timestamp: new Date(Date.now() - 100000)
-  },
-  {
-    id: 'demo-2',
-    role: Role.USER,
-    text: "Quiero investigar el efecto de la privación de sueño en el rendimiento cognitivo de estudiantes universitarios de ingeniería.",
-    timestamp: new Date(Date.now() - 90000)
-  },
-  {
-    id: 'demo-3',
-    role: Role.MODEL,
-    text: "Excelente punto de partida. Para garantizar rigor científico, debemos operacionalizar esto.\n\n**¿Cuál sería su Variable Independiente (X) específica y cómo planea manipularla?**",
-    timestamp: new Date(Date.now() - 80000)
-  },
-  {
-    id: 'demo-4',
-    role: Role.USER,
-    text: "La Variable Independiente (X) serán las horas de sueño permitidas la noche anterior al test (0, 4, y 8 horas).",
-    timestamp: new Date(Date.now() - 70000)
-  },
-  {
-    id: 'demo-5',
-    role: Role.MODEL,
-    text: "Entendido. Ahora la Variable Dependiente (Y). **¿Qué instrumento métrico utilizará para medir el 'rendimiento cognitivo'?**",
-    timestamp: new Date(Date.now() - 60000)
-  },
-  {
-    id: 'demo-6',
-    role: Role.USER,
-    text: "Usaré el Test de Matrices Progresivas de Raven para medir razonamiento abstracto.",
-    timestamp: new Date(Date.now() - 50000)
-  },
-  {
-    id: 'demo-7',
-    role: Role.MODEL,
-    text: "Muy bien. Hemos definido una estructura causal clara:\n\n$$X (Sueño) \\rightarrow Y (Puntaje Raven)$$\n\nAhora, formulemos las hipótesis estadísticas.\n\n$H_0$: $\\mu_{0h} = \\mu_{4h} = \\mu_{8h}$ (No hay diferencia significativa).\n$H_1$: $\\mu_{8h} > \\mu_{4h} > \\mu_{0h}$ (A mayor sueño, mayor rendimiento).\n\nEstamos listos para modelar las variables de confusión. **¿Ha considerado el consumo de cafeína como variable interviniente?**",
-    timestamp: new Date(Date.now() - 40000)
-  }
-];
-
-const DEMO_SIMULATION_CONFIG: SimulationConfig = {
-  independentVariables: [
-    {
-      name: 'sleepHours',
-      label: 'Horas de Sueño',
-      min: 0,
-      max: 10,
-      defaultValue: 4,
-      description: 'Horas de descanso permitidas antes de la evaluación cognitiva.'
-    }
-  ],
-  dependentVariableLabel: 'Puntaje Raven (0-60)',
-  h0_formula: '35',
-  h1_formula: '20 + 3 * sleepHours',
-  explanation: 'Modelo Lineal: Se asume que por cada hora adicional de sueño, el puntaje en el test de Raven aumenta en 3 puntos, partiendo de una base de 20.'
-};
-
-const DEMO_DIAGRAM_DATA: DiagramData = {
-  nodes: [
-    { 
-      id: 'n1', 
-      label: 'Problema', 
-      status: 'completed', 
-      details: 'Disminución de rendimiento cognitivo en estudiantes.', 
-      connections: ['n2'] 
-    },
-    { 
-      id: 'n2', 
-      label: 'Hipótesis', 
-      status: 'completed', 
-      details: 'Privación de sueño afecta negativamente el razonamiento abstracto.', 
-      connections: ['n3'] 
-    },
-    { 
-      id: 'n3', 
-      label: 'Variables', 
-      status: 'active', 
-      details: 'VI: Horas de sueño (0, 4, 8) | VD: Test Raven.', 
-      connections: ['n4'] 
-    },
-    { 
-      id: 'n4', 
-      label: 'Ejecución', 
-      status: 'pending', 
-      details: 'Diseño experimental y recolección de datos.', 
-      connections: [] 
-    }
-  ]
-};
-
 // --- MEMOIZED MESSAGE COMPONENT ---
 const MessageBubble = React.memo(({ msg }: { msg: Message }) => {
   return (
@@ -234,14 +134,14 @@ const MessageBubble = React.memo(({ msg }: { msg: Message }) => {
 });
 
 // --- START MENU COMPONENT ---
-const StartMenu = ({ onSelect, lang }: { onSelect: (mode: 'wizard' | 'scratch' | 'load' | 'demo') => void, lang: 'es' | 'en' }) => {
+const StartMenu = ({ onSelect, lang }: { onSelect: (mode: 'wizard' | 'scratch' | 'load') => void, lang: 'es' | 'en' }) => {
   const t = I18N[lang];
   return (
-    <div className="fixed inset-0 bg-slate-950 z-40 flex items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="menu-title">
+    <div className="fixed inset-0 bg-slate-950 z-40 flex items-center justify-center p-4">
       <motion.div 
         initial={{ opacity: 0, y: 20 }} 
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-5xl w-full my-auto"
+        className="max-w-4xl w-full"
       >
         <div className="text-center mb-12">
            <div className="flex items-center justify-center tracking-tight mb-4">
@@ -249,14 +149,14 @@ const StartMenu = ({ onSelect, lang }: { onSelect: (mode: 'wizard' | 'scratch' |
               <span className="text-teal-400 text-5xl font-black mx-1 tracking-wide">ARCH</span>
               <span className="text-slate-600 text-2xl font-medium">itect</span>
            </div>
-           <p className="text-slate-400 text-lg" id="menu-title">{t.menuTitle}</p>
+           <p className="text-slate-400 text-lg">{t.menuTitle}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
            {/* Option 1: Wizard */}
            <button 
              onClick={() => onSelect('wizard')}
-             className="group bg-slate-900 border border-slate-800 p-6 rounded-2xl hover:border-teal-500/50 hover:bg-slate-800/50 transition-all text-left flex flex-col gap-4 h-full"
+             className="group bg-slate-900 border border-slate-800 p-8 rounded-2xl hover:border-teal-500/50 hover:bg-slate-800/50 transition-all text-left flex flex-col gap-4"
            >
              <div className="w-12 h-12 bg-teal-900/30 rounded-lg flex items-center justify-center text-teal-400 group-hover:scale-110 transition-transform">
                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
@@ -270,7 +170,7 @@ const StartMenu = ({ onSelect, lang }: { onSelect: (mode: 'wizard' | 'scratch' |
            {/* Option 2: Scratch */}
            <button 
              onClick={() => onSelect('scratch')}
-             className="group bg-slate-900 border border-slate-800 p-6 rounded-2xl hover:border-indigo-500/50 hover:bg-slate-800/50 transition-all text-left flex flex-col gap-4 h-full"
+             className="group bg-slate-900 border border-slate-800 p-8 rounded-2xl hover:border-indigo-500/50 hover:bg-slate-800/50 transition-all text-left flex flex-col gap-4"
            >
              <div className="w-12 h-12 bg-indigo-900/30 rounded-lg flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
@@ -284,7 +184,7 @@ const StartMenu = ({ onSelect, lang }: { onSelect: (mode: 'wizard' | 'scratch' |
            {/* Option 3: Load */}
            <button 
              onClick={() => onSelect('load')}
-             className="group bg-slate-900 border border-slate-800 p-6 rounded-2xl hover:border-rose-500/50 hover:bg-slate-800/50 transition-all text-left flex flex-col gap-4 h-full"
+             className="group bg-slate-900 border border-slate-800 p-8 rounded-2xl hover:border-rose-500/50 hover:bg-slate-800/50 transition-all text-left flex flex-col gap-4"
            >
              <div className="w-12 h-12 bg-rose-900/30 rounded-lg flex items-center justify-center text-rose-400 group-hover:scale-110 transition-transform">
                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
@@ -292,20 +192,6 @@ const StartMenu = ({ onSelect, lang }: { onSelect: (mode: 'wizard' | 'scratch' |
              <div>
                <h3 className="text-xl font-bold text-slate-100 mb-2">{t.modeLoad}</h3>
                <p className="text-sm text-slate-400">{t.modeLoadDesc}</p>
-             </div>
-           </button>
-
-           {/* Option 4: Demo */}
-           <button 
-             onClick={() => onSelect('demo')}
-             className="group bg-slate-900 border border-slate-800 p-6 rounded-2xl hover:border-amber-500/50 hover:bg-slate-800/50 transition-all text-left flex flex-col gap-4 h-full"
-           >
-             <div className="w-12 h-12 bg-amber-900/30 rounded-lg flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
-               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-             </div>
-             <div>
-               <h3 className="text-xl font-bold text-slate-100 mb-2">{t.modeDemo}</h3>
-               <p className="text-sm text-slate-400">{t.modeDemoDesc}</p>
              </div>
            </button>
         </div>
@@ -328,19 +214,19 @@ const Wizard = ({ onComplete, onCancel, lang }: { onComplete: (data: WizardData)
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="wizard-title">
+    <div className="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4">
       <motion.div 
         initial={{ opacity: 0, scale: 0.9 }} 
         animate={{ opacity: 1, scale: 1 }}
         className="bg-slate-900 border border-slate-700 rounded-2xl p-8 max-w-lg w-full shadow-2xl relative"
       >
-        <button onClick={onCancel} className="absolute top-4 right-4 text-slate-500 hover:text-white" aria-label="Close">
+        <button onClick={onCancel} className="absolute top-4 right-4 text-slate-500 hover:text-white">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
 
         <div className="mb-8 text-center">
             <h1 className="text-3xl font-black text-teal-400 tracking-tight mb-2">ARCH</h1>
-            <p className="text-slate-400" id="wizard-title">{t.wizardTitle}</p>
+            <p className="text-slate-400">{t.wizardTitle}</p>
         </div>
 
         <div className="space-y-6">
@@ -480,29 +366,16 @@ export default function App() {
   };
 
   // --- START MENU HANDLERS ---
-  const handleStartSelection = async (mode: 'wizard' | 'scratch' | 'load' | 'demo') => {
+  const handleStartSelection = (mode: 'wizard' | 'scratch' | 'load') => {
     if (mode === 'wizard') {
       setViewState('wizard');
     } else if (mode === 'scratch') {
       setViewState('chat');
+      // Init scratch session
       initSession(); 
     } else if (mode === 'load') {
+      // Trigger file upload, viewState changes in file handler
       fileInputRef.current?.click();
-    } else if (mode === 'demo') {
-      setViewState('chat');
-      setMessages(DEMO_MESSAGES);
-      
-      // Preload facilities data for instant visualization
-      setSimulationConfig(DEMO_SIMULATION_CONFIG);
-      setSimValues({ sleepHours: 4 });
-      setDiagramData(DEMO_DIAGRAM_DATA);
-
-      // Convert internal messages to Gemini Content for the session context
-      const demoHistory: Content[] = DEMO_MESSAGES.map(m => ({
-        role: m.role,
-        parts: [{ text: m.text }]
-      }));
-      initSession(demoHistory);
     }
   };
 
@@ -920,11 +793,11 @@ export default function App() {
       {/* --- SIMULATION MODAL --- */}
       <AnimatePresence>
         {showSimulation && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="sim-title">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
                 <div className="bg-slate-900 border border-slate-700 w-full max-w-5xl h-[80vh] rounded-2xl flex flex-col shadow-2xl overflow-hidden">
                     <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900">
-                        <h2 className="text-xl font-bold text-teal-400" id="sim-title">{t.simTitle}</h2>
-                        <button onClick={() => setShowSimulation(false)} className="text-slate-400 hover:text-white" aria-label="Close">
+                        <h2 className="text-xl font-bold text-teal-400">{t.simTitle}</h2>
+                        <button onClick={() => setShowSimulation(false)} className="text-slate-400 hover:text-white">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                     </div>
@@ -1003,11 +876,11 @@ export default function App() {
       {/* --- DIAGRAM MODAL --- */}
       <AnimatePresence>
         {showDiagram && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="map-title">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
                 <div className="bg-slate-900 border border-slate-700 w-full max-w-6xl h-[85vh] rounded-2xl flex flex-col shadow-2xl">
                     <div className="p-4 border-b border-slate-800 flex justify-between items-center">
-                        <h2 className="text-xl font-bold text-indigo-400" id="map-title">{t.mapTitle}</h2>
-                        <button onClick={() => setShowDiagram(false)} className="text-slate-400 hover:text-white" aria-label="Close">Close</button>
+                        <h2 className="text-xl font-bold text-indigo-400">{t.mapTitle}</h2>
+                        <button onClick={() => setShowDiagram(false)} className="text-slate-400 hover:text-white">Close</button>
                     </div>
                     <div className="flex-1 overflow-auto p-8 relative bg-slate-950/50">
                         {isDiagramLoading ? (
