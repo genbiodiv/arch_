@@ -237,7 +237,7 @@ const MessageBubble = React.memo(({ msg }: { msg: Message }) => {
 const StartMenu = ({ onSelect, lang }: { onSelect: (mode: 'wizard' | 'scratch' | 'load' | 'demo') => void, lang: 'es' | 'en' }) => {
   const t = I18N[lang];
   return (
-    <div className="fixed inset-0 bg-slate-950 z-40 flex items-center justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 bg-slate-950 z-40 flex items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="menu-title">
       <motion.div 
         initial={{ opacity: 0, y: 20 }} 
         animate={{ opacity: 1, y: 0 }}
@@ -249,7 +249,7 @@ const StartMenu = ({ onSelect, lang }: { onSelect: (mode: 'wizard' | 'scratch' |
               <span className="text-teal-400 text-5xl font-black mx-1 tracking-wide">ARCH</span>
               <span className="text-slate-600 text-2xl font-medium">itect</span>
            </div>
-           <p className="text-slate-400 text-lg">{t.menuTitle}</p>
+           <p className="text-slate-400 text-lg" id="menu-title">{t.menuTitle}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -328,19 +328,19 @@ const Wizard = ({ onComplete, onCancel, lang }: { onComplete: (data: WizardData)
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="wizard-title">
       <motion.div 
         initial={{ opacity: 0, scale: 0.9 }} 
         animate={{ opacity: 1, scale: 1 }}
         className="bg-slate-900 border border-slate-700 rounded-2xl p-8 max-w-lg w-full shadow-2xl relative"
       >
-        <button onClick={onCancel} className="absolute top-4 right-4 text-slate-500 hover:text-white">
+        <button onClick={onCancel} className="absolute top-4 right-4 text-slate-500 hover:text-white" aria-label="Close">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
 
         <div className="mb-8 text-center">
             <h1 className="text-3xl font-black text-teal-400 tracking-tight mb-2">ARCH</h1>
-            <p className="text-slate-400">{t.wizardTitle}</p>
+            <p className="text-slate-400" id="wizard-title">{t.wizardTitle}</p>
         </div>
 
         <div className="space-y-6">
@@ -920,11 +920,11 @@ export default function App() {
       {/* --- SIMULATION MODAL --- */}
       <AnimatePresence>
         {showSimulation && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="sim-title">
                 <div className="bg-slate-900 border border-slate-700 w-full max-w-5xl h-[80vh] rounded-2xl flex flex-col shadow-2xl overflow-hidden">
                     <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900">
-                        <h2 className="text-xl font-bold text-teal-400">{t.simTitle}</h2>
-                        <button onClick={() => setShowSimulation(false)} className="text-slate-400 hover:text-white">
+                        <h2 className="text-xl font-bold text-teal-400" id="sim-title">{t.simTitle}</h2>
+                        <button onClick={() => setShowSimulation(false)} className="text-slate-400 hover:text-white" aria-label="Close">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                     </div>
@@ -1003,11 +1003,11 @@ export default function App() {
       {/* --- DIAGRAM MODAL --- */}
       <AnimatePresence>
         {showDiagram && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="map-title">
                 <div className="bg-slate-900 border border-slate-700 w-full max-w-6xl h-[85vh] rounded-2xl flex flex-col shadow-2xl">
                     <div className="p-4 border-b border-slate-800 flex justify-between items-center">
-                        <h2 className="text-xl font-bold text-indigo-400">{t.mapTitle}</h2>
-                        <button onClick={() => setShowDiagram(false)} className="text-slate-400 hover:text-white">Close</button>
+                        <h2 className="text-xl font-bold text-indigo-400" id="map-title">{t.mapTitle}</h2>
+                        <button onClick={() => setShowDiagram(false)} className="text-slate-400 hover:text-white" aria-label="Close">Close</button>
                     </div>
                     <div className="flex-1 overflow-auto p-8 relative bg-slate-950/50">
                         {isDiagramLoading ? (
